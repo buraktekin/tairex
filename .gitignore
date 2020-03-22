@@ -130,3 +130,6 @@ dmypy.json
 
 # Chrome driver
 chromedriver
+
+# IDE folder/files
+.vscode/

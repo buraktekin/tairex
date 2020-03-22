@@ -35,7 +35,6 @@ from keras.callbacks import TensorBoard
 from collections import deque
 from matplotlib import pyplot as plt
 from random import randint
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
