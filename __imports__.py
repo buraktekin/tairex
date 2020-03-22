@@ -1,0 +1,48 @@
+"""
+- Modularized the imports to have a more sleek understanding
+- Dependencies:
+  - Chromium Driver
+  - Matplotlib
+  - Selenium
+  - OpenCV
+  - Pickle
+  - Numpy
+  - Keras
+  - PIL
+"""
+# Image processing imports: PIL
+from PIL import Image
+from PIL import ImageGrab
+
+# Interaction interface imports: Selenium
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+
+# Neural Network imports: keras
+from keras.models import model_from_json
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation, Flatten
+from keras.layers.convolutional import Conv2D, MaxPooling2D
+from keras.optimizers import Adam, SGD
+from keras.callbacks import TensorBoard
+
+# Other imports
+# deque: Double ended queue
+# @src: https://docs.python.org/2/library/collections.html#collections.deque
+# Supports thread-safe, memmory efficient appends and pops from either side
+# of the deque with approx. the same O(1) performance in either direction.
+from collections import deque
+from matplotlib import pyplot as plt
+from random import randint
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import pickle
+import random
+import json
+import time
+import cv2
+import io
+import os
