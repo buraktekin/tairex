@@ -10,7 +10,7 @@ from params import GAME_URL
 import time
 
 
-class Interface:
+class Interface(object):
     """
     An interface to bridge python and browser to each other
     through Selenium. By this, we could catch the responses
@@ -62,6 +62,11 @@ class Interface:
             self.driver \
                 .find_element_by_tag_name("body") \
                 .send_keys(Keys.ARROW_UP)
+
+        def duck(self) -> None:
+            self.driver \
+                .find_element_by_tag_name("body") \
+                .send_keys(Keys.ARROW_DOWN)
 
         def get_score(self) -> int:
             # Weird but no prop returns the current score directly
