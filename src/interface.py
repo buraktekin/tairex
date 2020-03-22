@@ -50,6 +50,14 @@ class Interface:
                 'return Runner.instance_.stop()'
             )
 
+        def resume(self) -> None:
+            return self.driver.execute_script(
+                'return Runner.instance_.play()'
+            )
+
+        def close(self) -> None:
+            self.driver.close()
+
         def jump(self) -> None:
             self.driver \
                 .find_element_by_tag_name("body") \
@@ -63,16 +71,16 @@ class Interface:
             )  # returns list of score segments
             return int(''.join(score_segments))
 
-        def isDinoCrashed(self) -> bool:
+        def is_dino_crashed(self) -> bool:
             return self.driver.execute_script(
                 'return Runner.instance_.crashed'
             )
 
-        def isDinoRunning(self):
+        def is_dino_running(self) -> bool:
             return self.driver.execute_script(
                 'return Runner.instance_.playing'
             )
 
 
 if __name__ == "__main__":
-    interface = Interface()
+    Interface()
