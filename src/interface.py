@@ -1,21 +1,22 @@
 #! -*- coding: utf-8 -*-
 
+"""
+An interface to bridge python and browser to each other
+through Selenium. By this, we could catch the responses
+are fired by the game, during gameplay on the browser.
+"""
+
 # Interaction interface imports: Selenium
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from params import GAME_URL
-
 import time
 
 
 class Interface(object):
-    """
-    An interface to bridge python and browser to each other
-    through Selenium. By this, we could catch the responses
-    are fired by the game, during gameplay on the browser.
-    """
+    """Interface Module Implementation"""
 
     def __init__(self, conf=True):
         """Constructor"""

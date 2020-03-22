@@ -1,13 +1,13 @@
 #! -*- coding: utf-8 -*-
 
-"""Implementation of agent that will play the game"""
+"""The Agent that will play the game"""
 
 from interface import Interface
 import time
 
 
 class Agent(object):
-    """Class Implementation"""
+    """Agent Module Implementation"""
 
     def __init__(self, interface):
         """Constructor"""
@@ -15,14 +15,14 @@ class Agent(object):
         self.jump()
         time.sleep(.5)
 
-    def jump(self):
+    def jump(self) -> None:
         self._interface.jump()
 
-    def duck(self):
+    def duck(self) -> None:
         self._interface.duck()
 
-    def is_dino_crashed(self):
+    def is_dino_crashed(self) -> bool:
         return self._interface.is_dino_crashed()
 
-    def is_dino_running(self):
+    def is_dino_running(self) -> bool:
         return self._interface.is_dino_running()
