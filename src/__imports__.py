@@ -10,6 +10,7 @@
   - Keras
   - PIL
 """
+
 # Image processing imports: PIL
 from PIL import Image
 from PIL import ImageGrab
