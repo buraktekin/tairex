@@ -20,5 +20,9 @@ CHROME_DRIVER_PATH = "../chromedriver"
 LOSS_FILE_PATH = "./tracks/loss_df.csv"
 ACTIONS_FILE_PATH = "./tracks/actions_df.csv"
 SCORES_FILE_PATH = "./tracks/scores_df.csv"
-# Chrome v80 https://chromedriver.storage.googleapis.com/index.html?path=80.0.3987.106/
+
+
+# My version of Chrome is v80 https://chromedriver.storage.googleapis.com/index.html?path=80.0.3987.106/
 # to get other versions please check: https://chromedriver.chromium.org/downloads
+# Normally it is automatically detecting the browser version now. However, in case of
+# a compatiblity issues, you may want to check the links given above.

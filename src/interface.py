@@ -10,6 +10,7 @@ are fired by the game, during gameplay on the browser.
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+# automatize detecting required webdriver version
 from webdriver_manager.chrome import ChromeDriverManager
 from params import GAME_URL
 import time
