@@ -2,9 +2,23 @@
 from src.helpers import show_img
 from src.helpers import grab_screen
 
+import src.params as param
+import pandas as pd
+
 
 class State(object):
     """State Module Implementation"""
+    loss_df = pd.read_csv(param.LOSS_FILE_PATH) \
+        if os.path.isfile(param.LOSS_FILE_PATH) \
+        else pd.DataFrame(columns=['loss'])
+
+    scores_df = pd.read_csv(param.SCORES_FILE_PATH) \
+        if os.path.isfile(param.LOSS_FILE_PATH) \
+        else pd.DataFrame(columns=['scores'])
+
+    actions_df = pd.read_csv(param.ACTIONS_FILE_PATH) \
+        if os.path.isfile(param.ACTIONS_FILE_PATH) \
+        else pd.DataFrame(columns=['actions'])
 
     def __init__(self, agent, game):
         """Constructor"""
