@@ -2,7 +2,6 @@
 
 """The Agent that will play the game"""
 
-from interface import Interface
 import time
 
 
