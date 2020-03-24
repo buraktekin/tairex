@@ -133,3 +133,4 @@ chromedriver
 
 # IDE folder/files
 .vscode/
+logs/
