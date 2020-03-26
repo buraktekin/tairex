@@ -6,6 +6,8 @@ from src.state import State
 from src.model import NNModel
 
 import os
+import shutil
+import signal
 
 
 def run(observe=False):
@@ -26,6 +28,16 @@ def run(observe=False):
     except StopIteration:
         print("No model")
         interface.close()
+
+
+def keyboardInterruptHandler(signal, frame):
+    print("KeyboardInterrupt (ID: {}) has been caught. Cleaning up...".format(signal))
+    shutil.rmtree('./logs/')
+    shutil.rmtree('./model/')
+    exit(0)
+
+
+signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
 
 run(False)
