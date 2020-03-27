@@ -25,3 +25,6 @@ class Agent(object):
 
     def is_dino_running(self) -> bool:
         return self._interface.is_dino_running()
+
+    def is_dino_jumped(self) -> bool:
+        return self._interface.is_dino_jumped()

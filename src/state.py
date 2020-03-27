@@ -5,6 +5,7 @@ from src.helpers import grab_screen
 
 import src.params as param
 import pandas as pd
+import numpy as np
 import os
 
 
@@ -34,30 +35,27 @@ class State(object):
         self._screen.__next__()  # execute coroutine
 
     def state(self, actions) -> Tuple[ByteString, int, bool]:
-        self.actions_df.loc[len(self.actions_df)] = actions[1]
+        actions = actions.astype(int)
+        action_index = np.argmax(actions, axis=None)
+        self.actions_df.loc[len(self.actions_df)] = action_index
         score = self._game.get_score()
         high_score = self._game.get_highest_score()
-        reward = 0
-        is_game_over = False
+        is_game_over = self._agent.is_dino_crashed()
+        is_dino_jumped = self._agent.is_dino_jumped()
+        reward = 0.01 * score
 
-        # if 1 (jump) assigned to agent
-        reward_factor = abs(score - high_score)
-        if actions[1] == 1:
-            self._agent.jump()
-            reward = 0.5
-        elif actions[1] == 0:
-            reward = 0.45
-        elif actions[1] == 2:
-            self._agent.duck()
-            reward = 0.5
+        if is_game_over:
+            self.scores_df.loc[len(self.loss_df)] = score
+            self._game.restart()
+            reward = -10 / score if (high_score >= score) else -5 / score
+            is_game_over = True
+        else:
+            # if 1 (jump) || 0 (Run) assigned to agent
+            if action_index == 1:
+                reward = 0.1 * score
+                self._agent.jump()
 
         image = grab_screen(self._game.driver)
         self._screen.send(image)
 
-        if self._agent.is_dino_crashed():
-            self.scores_df.loc[len(self.loss_df)] = score
-            self._game.restart()
-            reward = -1
-            is_game_over = True
-
-        return image, reward, is_game_over
+        return image, reward, is_game_over, is_dino_jumped

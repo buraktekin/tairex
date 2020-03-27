@@ -93,7 +93,7 @@ class NNModel(object):
         do_nothing = np.zeros(param.ACTIONS)
         do_nothing[0] = 1
 
-        x_t, r_0, is_game_over = game_state.state(do_nothing)  # get next step after performing the action
+        x_t, r_0, is_game_over, is_dino_jumped = game_state.state(do_nothing)  # get next step after performing the action
         s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)  # stack 4 images to create placeholder input
         s_t = s_t.reshape(1, s_t.shape[0], s_t.shape[1], s_t.shape[2])  # 1*20*40*4
         initial_state = s_t
@@ -101,16 +101,15 @@ class NNModel(object):
         if observe:
             OBSERVE = 999999999  # We keep observe, never train
             epsilon = param.FINAL_EPSILON
+            try:
+                print("Loading weights...")
+                model.load_weights(param.MODEL_H5)
+                print("Done.")
+            except FileNotFoundError as fnf:
+                print(fnf)
         else:  # We go to training mode
             OBSERVE = param.OBSERVATION
-            epsilon = load_logs("epsilon")
-
-        try:
-            print("Loading weights...")
-            model.load_weights("../model.h5")
-            print("Done.")
-        except FileNotFoundError as fnf:
-            print(fnf)
+            epsilon = load_logs("epsilon")  # INITIAL_EPSILON
 
         adam = Adam(lr=param.LEARNING_RATE)
         model.compile(loss='mse', optimizer=adam)
@@ -124,44 +123,44 @@ class NNModel(object):
                 if random.random() <= epsilon:  # randomly explore an action
                     print("----------Random Action----------")
                     action_index = random.randrange(param.ACTIONS)
-                    actions_t[action_index] = 1
                 else:  # predict the output
                     q = model.predict(s_t)  # input a stack of 4 images, get the prediction
-                    max_Q = np.argmax(q)         # chosing index with maximum q value
-                    action_index = max_Q
-                    actions_t[action_index] = 1  # o=> do nothing, 1=> jump
+                    print(f"Predictions: {q}")
+                    action_index = np.argmax(q)         # chosing index with maximum q value
+
+            actions_t[action_index] = 1  # action_index: 0=> do nothing, 1=> jump
 
             # We reduced the epsilon (exploration parameter) gradually
             if epsilon > param.FINAL_EPSILON and t > OBSERVE:
                 epsilon -= (param.INITIAL_EPSILON - param.FINAL_EPSILON) / param.EXPLORE
 
             # run the selected action and observed next state and reward
-            x_t1, reward_t, is_game_over = game_state.state(actions_t)
+            x_t1, reward_t, is_game_over, is_dino_jumped = game_state.state(actions_t)
+            print("REWARD: ", reward_t)
             print(f'fps: {1 / (time.time()-last_time)}')  # helpful for measuring frame rate
             last_time = time.time()
-            x_t1 = x_t1.reshape(1, x_t1.shape[0], x_t1.shape[1], 1)  # 1x20x40x1
+            x_t1 = x_t1.reshape(1, x_t1.shape[0], x_t1.shape[1], 1)  # 1x64x48x1
             s_t1 = np.append(x_t1, s_t[:, :, :, :3], axis=3)  # append the new image to input stack and remove the first one
 
             # store the transition in D
+            print("Action Index: ", action_index)
             D.append((s_t, action_index, reward_t, s_t1, is_game_over))
             if len(D) > param.REPLAY_MEMORY:
                 D.popleft()
 
-            # only train if done observing
             loss = 0
             Q_sa = 0
             if t > OBSERVE:
-                # sample a minibatch to train on
-                minibatch = random.sample(D, param.BATCH)
+                minibatch = random.sample(D, param.BATCH)  # sample a minibatch to train on
                 inputs = np.zeros((param.BATCH, s_t.shape[1], s_t.shape[2], s_t.shape[3]))  # 32, 20, 40, 4
                 targets = np.zeros((inputs.shape[0], param.ACTIONS))  # 32, 2
 
                 # Now we do the experience replay
                 for i in range(0, len(minibatch)):
-                    state_t = minibatch[i][0]    # 4D stack of images
-                    action_t = minibatch[i][1]  # This is action index
-                    reward_t = minibatch[i][2]  # reward at state_t due to action_t
-                    state_t1 = minibatch[i][3]  # next state
+                    state_t = minibatch[i][0]       # 4D stack of images
+                    action_t = minibatch[i][1]      # which action is taken at time t
+                    reward_ti = minibatch[i][2]      # reward(state_t, action_t)
+                    state_t1 = minibatch[i][3]      # next state
                     is_game_over = minibatch[i][4]  # wheather the agent died or survided due the action
 
                     # predictions by the states
@@ -170,31 +169,33 @@ class NNModel(object):
                     Q_sa = model.predict(state_t1)  # stochastic transitions and rewards
 
                     if is_game_over:
-                        targets[i, action_t] = reward_t  # if terminated, only equals reward
+                        targets[i, action_t] = reward_ti  # if terminated, only equals reward
                     else:
-                        targets[i, action_t] = reward_t + param.GAMMA * np.max(Q_sa)
+                        targets[i, action_t] = reward_ti + param.GAMMA * np.max(Q_sa)
 
                 loss += model.train_on_batch(inputs, targets)
                 game_state.loss_df.loc[len(game_state.loss_df)] = loss
                 game_state.q_values_df.loc[len(game_state.q_values_df)] = np.max(Q_sa)
+            else:
+                time.sleep(.1)
 
             # state transition
-            s_t = initial_state if is_game_over else s_t1
+            s_t = s_t1  # initial_state if is_game_over else s_t1
             t = t + 1
 
             # save progress every 1000 iterations
-            if t % 1000 == 0:
+            if t % OBSERVE == 0:
                 print("Now we save model")
                 game_state._game.pause()  # pause game while saving to filesystem
-                model.save_weights("../model.h5", overwrite=True)
+                model.save_weights(param.MODEL_H5, overwrite=True)
                 save_logs(D, "deque")  # saving episodes
                 save_logs(t, "time")  # caching time steps
-                save_logs(epsilon, "epsilon")  # cache epsilon to avoid repeated randomness in actions
-                game_state.loss_df.to_csv("../logs/game_state.loss_df.csv", index=False)
-                game_state.scores_df.to_csv("../logs/game_state.scores_df.csv", index=False)
-                game_state.actions_df.to_csv("../logs/game_state.actions_df.csv", index=False)
+                save_logs(epsilon, "epsilon")  # cache epsilon to avoid repeated randomness in actions)
+                game_state.loss_df.to_csv(param.LOSS_FILE_PATH, index=False)
+                game_state.scores_df.to_csv(param.SCORES_FILE_PATH, index=False)
+                game_state.actions_df.to_csv(param.ACTIONS_FILE_PATH, index=False)
                 game_state.q_values_df.to_csv(param.Q_VALUE_FILE_PATH, index=False)
-                with open("../model.json", "w+") as outfile:
+                with open(param.MODEL_JSON, "w+") as outfile:
                     json.dump(model.to_json(), outfile)
                 clear_output()
                 game_state._game.resume()

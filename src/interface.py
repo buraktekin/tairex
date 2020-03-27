@@ -24,20 +24,28 @@ class Interface(object):
 
         # Create driver
         chrome_options = Options()
+        chrome_options.add_argument("--mute-audio")
         chrome_options.add_argument('disable-infobars')
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install(),
             chrome_options=chrome_options
         )
-
         # set browser props
+        # self.driver.maximize_window()
+        self.driver.set_window_size(width=640, height=480)
         self.driver.set_window_position(x=0, y=0)
-        self.driver.set_window_size(300, 200)
         self.driver.get(GAME_URL)
+
         if conf:
             # assign an id to canvas
             self.driver.execute_script(
                 "document.getElementsByClassName('runner-canvas')[0].id = 'game-area'"
+            )
+
+            # Remove distracting cloud drawings
+            self.driver.execute_script(
+                "Runner.instance_.horizon.clouds.map((c) => { c.remove = true });"
+                + "Runner.instance_.horizon.cloudSpeed = 0"
             )
             # set game acceleration to 0 to have a constant frame speed
             self.driver.execute_script(
@@ -50,7 +58,7 @@ class Interface(object):
         )
         # put some delay here to
         # compansate game screen rendering
-        time.sleep(5)
+        time.sleep(.25)
 
     def pause(self) -> None:
         return self.driver.execute_script(
@@ -100,6 +108,11 @@ class Interface(object):
         return self.driver.execute_script(
             'return Runner.instance_.playing'
         )
+
+    def is_dino_jumped(self) -> bool:
+        return bool(self.driver.execute_script(
+            'return Runner.instance_.tRex.jumping'
+        ))
 
 
 if __name__ == "__main__":
